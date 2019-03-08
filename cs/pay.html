@@ -1,0 +1,147 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insert title here</title>
+</head>
+<body>
+	<table>
+		<tr>
+			<th>商户品名称</th>
+			<td><input id="body"></td>
+		</tr>
+		<tr>
+			<th>支付金额</th>
+			<td><input id="amt"></td>
+		</tr>
+		<tr>
+			<td colspan="2"><input type="button" value="submit"
+				onclick="text();"></td>
+		</tr>
+	</table>
+	<script type="text/javascript" src="jquery.min.js"></script>
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script>
+		$(function() {
+
+			$.ajax({
+				async : false,
+				type : "GET",
+				dataType : 'jsonp',
+				jsonp : 'callback',
+				jsonpCallback : 'callbackfunction',
+				url : "http://116.228.89.139/acq_manager/pubPayInit",
+				//url : "http://localhost:8080/acq_manager/pubPayInit",
+				data : "",
+				timeout : 3000,
+				contentType : "application/json;utf-8",
+				success : function(data) {
+					wx.config({
+						debug : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+						appId : 'wx997a5c2150b0a7c8', // 必填，公众号的唯一标识
+						timestamp : data.timestamp, // 必填，生成签名的时间戳
+						nonceStr : data.nonceStr, // 必填，生成签名的随机串
+						signature : data.signature,// 必填，签名，见附录1
+						jsApiList : [ 'chooseWXPay' ]
+					// 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+					});
+				}
+			});
+		})
+
+		function text() {
+			$.ajax({
+				async : false,
+				type : "GET",
+				dataType : 'jsonp',
+				jsonp : 'callback',
+				jsonpCallback : 'callbackfunction',
+				url : "http://116.228.89.139/acq_manager/testPay",
+				//url : "http://localhost:8080/acq_manager/testPay",
+				data : {'amt':$("#amt").val(),'openid':''},
+				timeout : 3000,
+				contentType : "application/json;utf-8",
+				success : function(data) {
+					/* {"res_code":"000","res_msg":"ok",
+					"appId":"wx997a5c2150b0a7c8",
+					"timestamp":"2016-09-26 17:20:10",
+					"signType":"MD5",
+					"package":"prepay_id=wx20160926172010e3dccee9e60289891794",
+					"nonceStr":"fZCephK8VXk0LsDzAhXRkD2MxKDUyR",
+					"paySign":"0950B08EC1CDCFA47BE5763D10079340" }*/
+					wx.chooseWXPay({
+						"appId" : data.appId, //公众号名称，由商户传入     
+						"timestamp" : data.timeStamp, //时间戳，自1970年以来的秒数     
+						"nonceStr" : data.nonceStr, //随机串     
+						"package" : data.package,
+						"signType" : data.signType, //微信签名方式：     
+						"paySign" : data.paySign
+					})
+				}
+			});
+
+		}
+		/* 	var initConfig = function(data){
+		 alert("121");
+		 wx.config({
+		 debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+		 appId: 'wx997a5c2150b0a7c8', // 必填，公众号的唯一标识
+		 timestamp: data.timestamp, // 必填，生成签名的时间戳
+		 nonceStr: data.nonceStr, // 必填，生成签名的随机串
+		 signature: data.signature,// 必填，签名，见附录1
+		 jsApiList: ['chooseWXPay'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+		 });
+		 wx.ready(function(){
+		
+		 });
+		 wx.error(function(res){
+		
+		 });
+		 };
+		
+		 var script = document.createElement('script'), body = document.getElementsByTagName('body');
+		 //script.src = 'http://116.228.89.139/acq_manager/pubPayinit?callback=initConfig';
+		 script.src = "http://localhost:8080/acq_manager/pubPayInit?callback=initConfig";
+		 body[0].appendChild(script);
+		
+		 function submit() {
+		 /* {"res_code":"000","res_msg":"ok",
+		 "appId":"wx997a5c2150b0a7c8",
+		 "timeStamp":"2016-09-26 17:20:10",
+		 "signType":"MD5",
+		 "package":"prepay_id=wx20160926172010e3dccee9e60289891794",
+		 "nonceStr":"fZCephK8VXk0LsDzAhXRkD2MxKDUyR",
+		 "paySign":"0950B08EC1CDCFA47BE5763D10079340" }
+		 wx.chooseWXPay({
+		 "appId":"wx2421b1c4370ec43b",   //公众号名称，由商户传入     
+		 "timeStamp":" 1395712654",         //时间戳，自1970年以来的秒数     
+		 "nonceStr" : "e61463f8efa94090b1f366cccfbbb444", //随机串     
+		 "package" : "prepay_id=u802345jgfjsdfgsdg888",     
+		 "signType" : "MD5",         //微信签名方式：     
+		 "paySign" : "70EA570631E4BB79628FBCA9"
+		 })
+		
+		 /* var callbackfunction = function(data) {
+		 wx.chooseWXPay({
+		 appId: data.appId						
+		 timestamp: data.timestamp, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
+		 nonceStr: data.nonceStr, // 支付签名随机串，不长于 32 位
+		 package: data.package, // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=***）
+		 signType: data.signType, // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+		 paySign: data.paySign, // 支付签名
+		 success: function (res) {
+		 // 支付成功后的回调函数
+		 }
+		 });
+		 };
+		 var script = document.createElement('script'), body = document
+		 .getElementsByTagName('body');
+		 var amt = document.getElementById("amt");
+		 var bd = document.getElementById("body");
+		 script.src = 'http://116.228.89.139/acq_manager/pubPay?amt='+amt+'&body='+bd+'callback=callbackfunction';
+		 body[0].appendChild(script); 
+		 } */
+	</script>
+</body>
+</html>
